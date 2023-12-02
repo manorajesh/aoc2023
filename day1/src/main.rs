@@ -1,43 +1,64 @@
+use std::collections::HashMap;
+
+use regex::Regex;
+
 fn main() {
     let content = std::fs::read_to_string("input.txt").unwrap();
+    let mapping = HashMap::from([
+        ("one", 1),
+        ("two", 2),
+        ("three", 3),
+        ("four", 4),
+        ("five", 5),
+        ("six", 6),
+        ("seven", 7),
+        ("eight", 8),
+        ("nine", 9),
+        ("1", 1),
+        ("2", 2),
+        ("3", 3),
+        ("4", 4),
+        ("5", 5),
+        ("6", 6),
+        ("7", 7),
+        ("8", 8),
+        ("9", 9),
+        ("0", 0),
+    ]);
     let mut sum = 0;
 
     // 1.
     for line in content.lines() {
-        let numbers: Vec<char> = line
-            .chars()
-            .filter(|ch| ch.is_digit(10))
-            .collect();
+        // 2.
+        let re = Regex::new(r"(one|two|three|four|five|six|seven|eight|nine|\d)").unwrap();
+        let re_reversed = Regex::new(r"(eno|owt|eerht|ruof|evif|xis|neves|thgie|enin|\d)").unwrap();
 
-        let first = numbers.first().unwrap();
-        let last = numbers.last().unwrap();
+        let first = re
+            .find_iter(line)
+            .nth(0)
+            .map(|mat| mat.as_str())
+            .unwrap();
 
-        let calibration = String::from(*first) + &String::from(*last);
+        let reversed_line = line.chars().rev().collect::<String>();
 
-        let calibration: u32 = calibration.parse().unwrap();
-        sum += calibration;
+        let last = re_reversed
+            .find_iter(&reversed_line)
+            .nth(0)
+            .map(|mat| mat.as_str())
+            .unwrap();
+
+        let last = last.chars().rev().collect::<String>();
+
+        let first_digit = mapping.get(first).unwrap() * 10;
+        let last_digit = mapping.get(last.as_str()).unwrap();
+
+        let number = first_digit + last_digit;
+        println!("{line}");
+        // println!("{matches:?}");
+        println!("{number}\n");
+
+        sum += number;
     }
-
-    // each ch for speed?
-    // let mut first = String::new();
-    // let mut last = String::new();
-    // for ch in content.chars() {
-    //     if ch == '\n' {
-    //         let calibration = String::from(first) + &String::from(last);
-
-    //         let calibration: u32 = calibration.parse().unwrap();
-    //         sum += calibration;
-
-    //         first = String::new();
-    //         last = String::new();
-    //     } else if ch.is_digit(10) {
-    //         if first == "" {
-    //             first = ch.to_string();
-    //         } else {
-    //             last = ch.to_string();
-    //         }
-    //     }
-    // }
 
     println!("{sum}");
 }
