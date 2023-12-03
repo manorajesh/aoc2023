@@ -22,37 +22,46 @@ impl Game {
         self.red = 0;
         self.green = 0;
     }
+
+    fn transfer_largest(&mut self, other: &mut Self) {
+        if self.blue < other.blue {
+            self.blue = other.blue;
+        }
+
+        if self.red < other.red {
+            self.red = other.red;
+        }
+
+        if self.green < other.green {
+            self.green = other.green;
+        }
+    }
 }
 
 fn main() {
     let content = std::fs::read_to_string("input.txt").unwrap();
-    let mut games: Vec<usize> = Vec::new();
+    let mut games: Vec<Game> = Vec::new();
 
     for line in content.lines() {
         let parts: Vec<&str> = line.split_terminator(&[';', ':'][..]).collect();
 
         let mut game = Game::new();
-        let mut valid_game = true;
+        let mut largest_combo = Game::new();
         for part in parts {
             let subparts: Vec<&str> = part.split_terminator(&[' ', ','][..]).collect();
             extract_data(&subparts, &mut game);
 
-            if game.blue > 14 || game.red > 12 || game.green > 13 {
-                valid_game = false;
-            }
-            game.new_round();
+            largest_combo.transfer_largest(&mut game);
 
-            println!("{:?}", subparts);
+            game.new_round();
         }
-        println!("");
-        if valid_game {
-            games.push(game.id);
-        }
+
+        games.push(largest_combo);
     }
 
     println!("{:#?}", games);
 
-    let sum_ids = games.iter().fold(0, |acc, id| acc + id);
+    let sum_ids = games.iter().fold(0, |acc, game| acc + game.blue * game.red * game.green);
 
     println!("Sum of ids: {}", sum_ids);
 }
