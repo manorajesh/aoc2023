@@ -87,7 +87,7 @@ fn count_total_cards(all_cards: &Vec<PlayerCard>, copies: Vec<PlayerCard>) -> us
             .unwrap_or(&[])
             .to_vec();
 
-        total_cards += card.count();
+        total_cards += 1;
         total_cards += count_total_cards(all_cards, next_cards);
     }
 
