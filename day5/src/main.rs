@@ -51,10 +51,10 @@ impl Almanac {
         let mut transformed_val = seed;
 
         for table in &self.transform_tables {
-            print!("{transformed_val} -> ");
+            // print!("{transformed_val} -> ");
             transformed_val = table.get_transform(transformed_val);
         }
-        print!("{transformed_val}");
+        // print!("{transformed_val}");
         transformed_val
     }
 
@@ -62,7 +62,7 @@ impl Almanac {
         let mut transforms = Vec::new();
         for seed in seeds {
             transforms.push(self.get_location(seed));
-            println!();
+            // println!();
         }
         transforms
     }
@@ -71,18 +71,45 @@ impl Almanac {
         *self.get_all_locations(seeds).iter().min().unwrap()
     }
 
+    fn get_lowest_location_ranges(&self, seed_range: SeedRanges) -> usize {
+        let mut lowest_val = usize::MAX;
+
+        for range in seed_range.ranges {
+            range.for_each(|seed| {
+                lowest_val = lowest_val.min(self.get_location(seed));
+            });
+        }
+        lowest_val
+    }
+
     fn push(&mut self, transform_table: TransformTable) {
         self.transform_tables.push(transform_table)
     }
 }
 
-fn extract_data(content: String) -> (Almanac, Vec<usize>) {
+#[derive(Debug, Clone, Default)]
+struct SeedRanges {
+    ranges: Vec<Range<usize>>,
+}
+
+impl SeedRanges {
+    fn push(&mut self, range: Range<usize>) {
+        self.ranges.push(range)
+    }
+}
+
+fn extract_data(content: String) -> (Almanac, SeedRanges) {
     let re = regex::Regex::new(r"\b\d+\b").unwrap();
     let mut lines = content.lines();
     let seeds = re
         .find_iter(lines.next().unwrap())
         .map(|m| m.as_str().parse::<usize>().unwrap())
         .collect::<Vec<_>>();
+
+    let mut seed_range = SeedRanges::default();
+    for chunk in seeds.chunks(2) {
+        seed_range.push(chunk[0]..chunk[0] + chunk[1]);
+    }
 
     let mut almanac = Almanac::default();
 
@@ -113,17 +140,21 @@ fn extract_data(content: String) -> (Almanac, Vec<usize>) {
         almanac.push(current_transform_table);
     }
 
-    (almanac, seeds)
+    (almanac, seed_range)
 }
 
 fn main() {
     let content = std::fs::read_to_string("input.txt").unwrap();
 
-    let (almanac, seeds) = extract_data(content);
+    let (almanac, seed_range) = extract_data(content);
 
-    println!("{seeds:#?}\n\n");
-    println!("{almanac:#?}");
+    // println!("{seed_range:#?}\n\n");
+    // println!("{almanac:#?}");
 
-    let lowest_location = almanac.get_lowest_location(seeds);
-    println!("Lowest Location for a seed: {lowest_location}")
+    let lowest_location = almanac.get_lowest_location_ranges(seed_range);
+    println!("Lowest Location for a seed: {lowest_location}");
+
+    // for range in seed_range.ranges {
+    //     println!("{:?}: has len of {}", range, range.len());
+    // }
 }
